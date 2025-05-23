@@ -1,0 +1,104 @@
+<?php
+// Define o cabeçalho da resposta como JSON desde o início
+header('Content-Type: application/json');
+
+// Configurações do banco de dados
+$host = "www.***************.com.br:3306"; // Endereço do servidor do banco de dados
+$username = "***************"; // Nome de usuário para o banco de dados
+$password = "***************"; // Senha para o banco de dados
+$dbname = "***************"; // Nome do banco de dados
+
+// Cria a conexão com o banco de dados MySQL
+$conn = new mysqli($host, $username, $password, $dbname);
+
+// Verifica se a conexão foi bem-sucedida
+if ($conn->connect_error) {
+    // Se houver erro na conexão, termina o script e envia uma resposta JSON com o erro
+    die(json_encode(["status" => "error", "message" => "Conexão falhou: " . $conn->connect_error]));
+}
+
+$response = []; // Array para armazenar a resposta JSON que será enviada ao cliente
+
+// Lê o corpo da requisição HTTP e decodifica o JSON para um array associativo
+// 'php://input' é um fluxo somente leitura que permite ler dados brutos do corpo da solicitação.
+$input = json_decode(file_get_contents('php://input'), true);
+
+// Verifica se os campos 'encoding', 'dataRegistro' e 'horarioentrada' foram enviados no corpo da requisição JSON
+if (isset($input['encoding']) && isset($input['dataRegistro']) && isset($input['horarioentrada'])) {
+
+    // Armazena os valores recebidos do JSON
+    $encoding_recebido = $input['encoding'];
+    $dataRegistro = $input['dataRegistro']; // Data fornecida pelo cliente
+    $horarioentrada = $input['horarioentrada']; // Horário fornecido pelo cliente
+
+    // Prepara a consulta SQL para buscar um colaborador com o encoding correspondente
+    $sql = "SELECT matricula, nome FROM Colaborador WHERE encoding = ?";
+    $stmt = $conn->prepare($sql); // Prepara a instrução SQL para execução
+
+    // Verifica se a preparação da consulta falhou
+    if ($stmt === false) {
+        // Se falhou, define a resposta como erro e inclui a mensagem de erro do banco de dados
+        $response = ["status" => "error", "message" => "Erro na preparação da consulta: " . $conn->error];
+    } else {
+        // Se a preparação foi bem-sucedida, vincula o parâmetro 'encoding_recebido' à consulta
+        // "s" indica que o parâmetro é uma string
+        $stmt->bind_param("s", $encoding_recebido);
+        $stmt->execute(); // Executa a consulta
+        $result = $stmt->get_result(); // Obtém o resultado da consulta
+
+        // Verifica se a consulta retornou algum resultado e se há pelo menos uma linha
+        if ($result && $result->num_rows > 0) {
+            // Se encontrou um colaborador, obtém os dados do colaborador
+            $colaborador = $result->fetch_assoc(); // Extrai uma linha de resultado como um array associativo
+            $matricula = $colaborador['matricula']; // Armazena a matrícula do colaborador
+            $nome = $colaborador['nome']; // Armazena o nome do colaborador
+
+            // Prepara a consulta SQL para inserir o registro de ponto na tabela 'Ponto'
+            // Utiliza a data e horário fornecidos pelo cliente
+            $insert_sql = "INSERT INTO Ponto (idColaborador, dataRegistro, horarioentrada) VALUES (?, ?, ?)";
+            $stmt_insert = $conn->prepare($insert_sql); // Prepara a instrução SQL de inserção
+
+            // Verifica se a preparação da inserção falhou
+            if ($stmt_insert === false) {
+                // Se falhou, define a resposta como erro e inclui a mensagem de erro do banco de dados
+                $response = ["status" => "error", "message" => "Erro na preparação da inserção: " . $conn->error];
+            } else {
+                // Se a preparação foi bem-sucedida, vincula os parâmetros à consulta de inserção
+                // "sss" indica que os três parâmetros são strings (matrícula, data, horário)
+                $stmt_insert->bind_param("sss", $matricula, $dataRegistro, $horarioentrada);
+
+                // Executa a inserção do registro de ponto
+                if ($stmt_insert->execute()) {
+                    // Se a inserção foi bem-sucedida, define a resposta como sucesso
+                    // e inclui os dados do registro e do colaborador
+                    $response = [
+                        "status" => "success",
+                        "message" => "Reconhecimento confirmado. Registro de ponto efetuado.",
+                        "dataRegistro" => $dataRegistro,
+                        "horarioentrada" => $horarioentrada,
+                        "matricula" => $matricula,
+                        "nome" => $nome
+                    ];
+                } else {
+                    // Se a inserção falhou, define a resposta como erro e inclui a mensagem de erro da inserção
+                    $response = ["status" => "error", "message" => "Erro ao registrar ponto: " . $stmt_insert->error];
+                }
+                $stmt_insert->close(); // Fecha a declaração preparada de inserção
+            }
+        } else {
+            // Se nenhum colaborador foi encontrado com o encoding informado, define a resposta como falha
+            $response = ["status" => "fail", "message" => "Nenhum colaborador encontrado com o encoding informado."];
+        }
+        $stmt->close(); // Fecha a declaração preparada de busca
+    }
+} else {
+    // Se os dados 'encoding', 'dataRegistro' ou 'horarioentrada' não foram informados no JSON, define a resposta como erro
+    $response = ["status" => "error", "message" => "Dados incompletos. Encoding, dataRegistro e horarioentrada são obrigatórios."];
+}
+
+$conn->close(); // Fecha a conexão com o banco de dados
+
+// Converte o array de resposta em uma string JSON e a envia para o cliente
+// O header Content-Type já foi definido no início do script
+echo json_encode($response);
+?>
