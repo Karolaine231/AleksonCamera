@@ -1,0 +1,137 @@
+boot_andre
+
+DROP TABLE IF EXISTS Ponto;
+DROP TABLE IF EXISTS BackupPontoCompleto;
+DROP TABLE IF EXISTS Colaborador;
+DROP TABLE IF EXISTS Departamento;
+DROP TABLE IF EXISTS BDEmpresaInterno;
+
+-- Criar tabela BDEmpresaInterno
+CREATE TABLE IF NOT EXISTS BDEmpresaInterno (
+  empresa INT NOT NULL, -- Chave Primária, permanece NOT NULL
+  cnpj VARCHAR(14) DEFAULT NULL,
+  endereco TEXT DEFAULT NULL,
+  data_aquisicao DATE DEFAULT NULL,
+  plano_contratado VARCHAR(20) DEFAULT NULL,
+  status_contrato VARCHAR(10) DEFAULT NULL,
+  qtd_colaboradores INT DEFAULT NULL,
+  qtd_catracas INT DEFAULT NULL,
+  PRIMARY KEY (empresa),
+  CONSTRAINT BDEmpresaInterno_chk_1 CHECK (plano_contratado IN ('Starter', 'Pro', 'Ultra')),
+  CONSTRAINT BDEmpresaInterno_chk_2 CHECK (status_contrato IN ('Ativo', 'Inativo')),
+  CONSTRAINT BDEmpresaInterno_chk_3 CHECK (qtd_colaboradores >= 0 OR qtd_colaboradores IS NULL), -- Ajustado para permitir NULL
+  CONSTRAINT BDEmpresaInterno_chk_4 CHECK (qtd_catracas >= 0 OR qtd_catracas IS NULL) -- Ajustado para permitir NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Criar tabela Departamento
+CREATE TABLE IF NOT EXISTS Departamento (
+  idDepartamento INT NOT NULL, -- Chave Primária, permanece NOT NULL
+  rh VARCHAR(100) DEFAULT NULL,
+  marketing VARCHAR(100) DEFAULT NULL,
+  logistica VARCHAR(100) DEFAULT NULL,
+  ti VARCHAR(100) DEFAULT NULL,
+  engenharia VARCHAR(100) DEFAULT NULL,
+  PRIMARY KEY (idDepartamento)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Criar tabela Colaborador
+CREATE TABLE IF NOT EXISTS Colaborador (
+  matricula VARCHAR(30) NOT NULL, -- Chave Primária, permanece NOT NULL
+  escala VARCHAR(20) DEFAULT NULL,
+  horariocontratual FLOAT DEFAULT NULL,
+  nome VARCHAR(100) DEFAULT NULL,
+  funcao VARCHAR(30) DEFAULT NULL,
+  idDepartamento INT DEFAULT NULL,
+  empresa INT DEFAULT NULL,
+  PRIMARY KEY (matricula),
+  KEY idDepartamento (idDepartamento),
+  KEY empresa (empresa),
+  CONSTRAINT Colaborador_ibfk_1 FOREIGN KEY (idDepartamento) REFERENCES Departamento (idDepartamento),
+  CONSTRAINT Colaborador_ibfk_2 FOREIGN KEY (empresa) REFERENCES BDEmpresaInterno (empresa)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Criar tabela Ponto
+CREATE TABLE IF NOT EXISTS Ponto (
+  idPonto BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, -- Parte da Chave Primária, permanece NOT NULL
+  idColaborador VARCHAR(30) DEFAULT NULL, -- Alterado de NOT NULL para DEFAULT NULL
+  dataRegistro DATE DEFAULT NULL, -- Alterado de NOT NULL para DEFAULT NULL
+  horarioentrada TIME DEFAULT NULL,
+  horariosaida TIME DEFAULT NULL,
+  PRIMARY KEY (idPonto),
+  UNIQUE KEY idx_idPonto_unique (idPonto), -- Renomeado para evitar conflito com nome da coluna se 'idPonto' era o nome original da constraint
+  KEY idColaborador (idColaborador),
+  CONSTRAINT Ponto_ibfk_1 FOREIGN KEY (idColaborador) REFERENCES Colaborador (matricula),
+  CONSTRAINT Ponto_chk_1 CHECK (horarioentrada IS NULL OR horarioentrada < '10:00'),
+  CONSTRAINT Ponto_chk_2 CHECK (horariosaida IS NULL OR horariosaida < '10:00')
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Criar tabela BackupPontoCompleto
+CREATE TABLE IF NOT EXISTS BackupPontoCompleto (
+  idBackup BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, -- Parte da Chave Primária, permanece NOT NULL
+  matricula VARCHAR(30) DEFAULT NULL,
+  nome_colaborador VARCHAR(100) DEFAULT NULL,
+  funcao VARCHAR(30) DEFAULT NULL,
+  escala VARCHAR(20) DEFAULT NULL,
+  horariocontratual FLOAT DEFAULT NULL,
+  data_registro DATE DEFAULT NULL,
+  horario_entrada TIME DEFAULT NULL,
+  horario_saida TIME DEFAULT NULL,
+  nome_departamento VARCHAR(100) DEFAULT NULL,
+  nome_empresa TEXT,
+  status_contrato VARCHAR(10) DEFAULT NULL,
+  data_backup TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (idBackup),
+  UNIQUE KEY idx_idBackup_unique (idBackup) -- Renomeado para evitar conflito com nome da coluna se 'idBackup' era o nome original da constraint
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+ALTER TABLE Colaborador
+ADD COLUMN encoding LONGBLOB AFTER nome;
+ALTER TABLE BackupPontoCompleto
+ADD COLUMN encoding LONGBLOB AFTER nome_colaborador;
+
+
+-- Primeiro, execute este comando SEPARADAMENTE no seu cliente MySQL:
+
+-- Depois, execute o bloco da trigger:
+
+CREATE TRIGGER BackupPontoTrigger
+AFTER INSERT ON Ponto
+FOR EACH ROW
+BEGIN
+  INSERT INTO BackupPontoCompleto (
+    matricula,
+    nome_colaborador,
+    encoding, -- Coluna de encoding adicionada ao INSERT
+    funcao,
+    escala,
+    horariocontratual,
+    data_registro,
+    horario_entrada,
+    horario_saida,
+    nome_departamento,
+    nome_empresa,
+    status_contrato
+  )
+  SELECT
+    c.matricula,
+    c.nome,
+    c.encoding, -- Selecionando o encoding do colaborador
+    c.funcao,
+    c.escala,
+    c.horariocontratual,
+    NEW.dataRegistro,
+    NEW.horarioentrada,
+    NEW.horariosaida,
+    -- Tenta obter um nome de departamento. Se todos forem NULL, o resultado será NULL.
+    COALESCE(d.rh, d.marketing, d.logistica, d.ti, d.engenharia) AS nome_departamento_calculado,
+    e.empresa, -- Mapeando e.empresa (INT) para nome_empresa (TEXT). Pode ser necessário ajustar para um nome descritivo da empresa.
+    e.status_contrato
+  FROM Colaborador c
+  LEFT JOIN Departamento d ON c.idDepartamento = d.idDepartamento
+  LEFT JOIN BDEmpresaInterno e ON c.empresa = e.empresa
+  WHERE c.matricula = NEW.idColaborador;
+END;
+-- // -- Descomente se estiver executando em um cliente SQL que requer mudança de delimitador
+-- DELIMITER ; -- Descomente para restaurar o delimitador padrão
+
+

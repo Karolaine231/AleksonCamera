@@ -1,0 +1,257 @@
+
+criando empresas
+
+INSERT INTO BDEmpresaInterno (
+    empresa, cnpj, endereco, data_aquisicao, plano_contratado,
+    status_contrato, qtd_colaboradores, qtd_catracas
+) VALUES (
+    305, '12345678000190', 'Rua das Acácias, 101 - Centro - Belo Horizonte/MG',
+    '2023-03-15', 'Starter', 'Ativo', 45, 4
+);
+
+INSERT INTO BDEmpresaInterno (
+    empresa, cnpj, endereco, data_aquisicao, plano_contratado,
+    status_contrato, qtd_colaboradores, qtd_catracas
+) VALUES (
+    306, '23456789000180', 'Av. João Pessoa, 500 - Porto Alegre/RS',
+    '2022-10-20', 'Pro', 'Ativo', 70, 6
+);
+
+INSERT INTO BDEmpresaInterno (
+    empresa, cnpj, endereco, data_aquisicao, plano_contratado,
+    status_contrato, qtd_colaboradores, qtd_catracas
+) VALUES (
+    307, '34567890000170', 'Rua das Flores, 330 - Curitiba/PR',
+    '2024-01-05', 'Ultra', 'Ativo', 120, 8
+);
+
+INSERT INTO BDEmpresaInterno (
+    empresa, cnpj, endereco, data_aquisicao, plano_contratado,
+    status_contrato, qtd_colaboradores, qtd_catracas
+) VALUES (
+    308, '45678901000160', 'Alameda Santos, 88 - São Paulo/SP',
+    '2023-06-30', 'Pro', 'Ativo', 38, 3
+);
+
+
+criando departamento
+
+INSERT INTO Departamento (
+  idDepartamento, rh, marketing, logistica, ti, engenharia
+) VALUES (
+  1, 'Analista de Recursos Humanos', NULL, NULL, NULL, NULL
+);
+
+INSERT INTO Departamento (
+  idDepartamento, rh, marketing, logistica, ti, engenharia
+) VALUES (
+  2, NULL, 'Coordenador de Marketing Digital', NULL, NULL, NULL
+);
+
+INSERT INTO Departamento (
+  idDepartamento, rh, marketing, logistica, ti, engenharia
+) VALUES (
+  3, NULL, NULL, 'Supervisor de Logística', NULL, NULL
+);
+
+INSERT INTO Departamento (
+  idDepartamento, rh, marketing, logistica, ti, engenharia
+) VALUES (
+  4, NULL, NULL, NULL, 'Desenvolvedor Backend', NULL
+);
+
+INSERT INTO Departamento (
+  idDepartamento, rh, marketing, logistica, ti, engenharia
+) VALUES (
+  5, NULL, NULL, NULL, NULL, 'Engenheiro de Projetos'
+);
+
+
+criando colaborador
+
+
+INSERT INTO Colaborador (
+    matricula, escala, horariocontratual, nome, funcao, idDepartamento, empresa
+) VALUES (
+    'MAT360', '12x36', 8.0, 'Arthur Pereira', 'Coordenador', 2, 305
+);
+INSERT INTO Colaborador (
+    matricula, escala, horariocontratual, nome, funcao, idDepartamento, empresa
+) VALUES (
+    'MAT557', '5x2', 7.5, 'Ana Sophia da Mata', 'Gerente', 3, 305
+);
+INSERT INTO Colaborador (
+    matricula, escala, horariocontratual, nome, funcao, idDepartamento, empresa
+) VALUES (
+    'MAT834', '6x1', 6.0, 'Daniel Teixeira', 'Analista', 2, 305
+);
+INSERT INTO Colaborador (
+    matricula, escala, horariocontratual, nome, funcao, idDepartamento, empresa
+) VALUES (
+    'MAT837', '5x2', 6.0, 'Vitória Costa', 'Gerente', 4, 305
+);
+INSERT INTO Colaborador (
+    matricula, escala, horariocontratual, nome, funcao, idDepartamento, empresa
+) VALUES (
+    'MAT673', '12x36', 7.5, 'Heloísa Nunes', 'Gerente', 1, 306
+);
+INSERT INTO Colaborador (
+    matricula, escala, horariocontratual, nome, funcao, idDepartamento, empresa
+) VALUES (
+    'MAT452', '12x36', 6.0, 'Lucas Gabriel Viana', 'Gerente', 1, 306
+);
+INSERT INTO Colaborador (
+    matricula, escala, horariocontratual, nome, funcao, idDepartamento, empresa
+) VALUES (
+    'MAT912', '6x1', 6.0, 'Mariana Rocha', 'Assistente', 2, 306
+);
+INSERT INTO Colaborador (
+    matricula, escala, horariocontratual, nome, funcao, idDepartamento, empresa
+) VALUES (
+    'MAT787', '6x1', 7.5, 'Thales da Mata', 'Estagiário', 5, 306
+);
+INSERT INTO Colaborador (
+    matricula, escala, horariocontratual, nome, funcao, idDepartamento, empresa
+) VALUES (
+    'MAT122', '12x36', 7.5, 'Sra. Júlia Dias', 'Assistente', 1, 307
+);
+INSERT INTO Colaborador (
+    matricula, escala, horariocontratual, nome, funcao, idDepartamento, empresa
+) VALUES (
+    'MAT438', '12x36', 7.5, 'Lavínia da Mota', 'Supervisor', 1, 307
+);
+INSERT INTO Colaborador (
+    matricula, escala, horariocontratual, nome, funcao, idDepartamento, empresa
+) VALUES (
+    'MAT709', '5x2', 7.5, 'Srta. Sophia Dias', 'Gerente', 2, 307
+);
+INSERT INTO Colaborador (
+    matricula, escala, horariocontratual, nome, funcao, idDepartamento, empresa
+) VALUES (
+    'MAT655', '12x36', 6.0, 'Daniela Sales', 'Supervisor', 3, 307
+);
+INSERT INTO Colaborador (
+    matricula, escala, horariocontratual, nome, funcao, idDepartamento, empresa
+) VALUES (
+    'MAT964', '6x1', 8.0, 'Olivia Viana', 'Analista', 2, 308
+);
+INSERT INTO Colaborador (
+    matricula, escala, horariocontratual, nome, funcao, idDepartamento, empresa
+) VALUES (
+    'MAT239', '12x36', 7.5, 'Dr. Cauê da Mata', 'Supervisor', 3, 308
+);
+INSERT INTO Colaborador (
+    matricula, escala, horariocontratual, nome, funcao, idDepartamento, empresa
+) VALUES (
+    'MAT544', '5x2', 6.0, 'Augusto Lopes', 'Analista', 3, 308
+);
+INSERT INTO Colaborador (
+    matricula, escala, horariocontratual, nome, funcao, idDepartamento, empresa
+) VALUES (
+    'MAT783', '12x36', 8.0, 'Maitê Moraes', 'Supervisor', 5, 308
+);
+
+
+
+criando batida de ponto
+
+
+-- Batidas de ponto para Arthur Pereira (MAT360)
+INSERT INTO Ponto (idColaborador, dataRegistro, horarioentrada, horariosaida) VALUES
+('MAT360', '2025-05-17', '08:00:00', '12:00:00'),
+('MAT360', '2025-05-17', '13:00:00', '17:00:00'),
+('MAT360', '2025-05-16', '07:55:00', '12:05:00'),
+('MAT360', '2025-05-16', '12:58:00', '17:02:00');
+
+-- Batidas de ponto para Ana Sophia da Mata (MAT557)
+INSERT INTO Ponto (idColaborador, dataRegistro, horarioentrada, horariosaida) VALUES
+('MAT557', '2025-05-17', '09:05:00', '13:03:00'),
+('MAT557', '2025-05-17', '14:01:00', '17:35:00'),
+('MAT557', '2025-05-16', '08:58:00', '13:08:00'),
+('MAT557', '2025-05-16', '14:05:00', '17:32:00');
+
+-- Batidas de ponto para Daniel Teixeira (MAT834)
+INSERT INTO Ponto (idColaborador, dataRegistro, horarioentrada, horariosaida) VALUES
+('MAT834', '2025-05-17', '08:10:00', '12:15:00'),
+('MAT834', '2025-05-17', '13:12:00', '16:18:00'),
+('MAT834', '2025-05-16', '08:05:00', '12:10:00'),
+('MAT834', '2025-05-16', '13:15:00', '16:20:00');
+
+-- Batidas de ponto para Vitória Costa (MAT837)
+INSERT INTO Ponto (idColaborador, dataRegistro, horarioentrada, horariosaida) VALUES
+('MAT837', '2025-05-17', '09:02:00', '13:00:00'),
+('MAT837', '2025-05-17', '14:03:00', '17:38:00'),
+('MAT837', '2025-05-16', '09:08:00', '13:05:00'),
+('MAT837', '2025-05-16', '14:00:00', '17:30:00');
+
+-- Batidas de ponto para Heloísa Nunes (MAT673)
+INSERT INTO Ponto (idColaborador, dataRegistro, horarioentrada, horariosaida) VALUES
+('MAT673', '2025-05-17', '07:58:00', '18:02:00'),
+('MAT673', '2025-05-15', '08:01:00', '17:59:00');
+
+-- Batidas de ponto para Lucas Gabriel Viana (MAT452)
+INSERT INTO Ponto (idColaborador, dataRegistro, horarioentrada, horariosaida) VALUES
+('MAT452', '2025-05-17', '08:03:00', '18:05:00'),
+('MAT452', '2025-05-15', '07:57:00', '18:03:00');
+
+-- Batidas de ponto para Mariana Rocha (MAT912)
+INSERT INTO Ponto (idColaborador, dataRegistro, horarioentrada, horariosaida) VALUES
+('MAT912', '2025-05-17', '08:15:00', '12:20:00'),
+('MAT912', '2025-05-17', '13:22:00', '16:25:00'),
+('MAT912', '2025-05-16', '08:20:00', '12:25:00'),
+('MAT912', '2025-05-16', '13:25:00', '16:30:00');
+
+-- Batidas de ponto para Thales da Mata (MAT787)
+INSERT INTO Ponto (idColaborador, dataRegistro, horarioentrada, horariosaida) VALUES
+('MAT787', '2025-05-17', '09:08:00', '13:06:00'),
+('MAT787', '2025-05-17', '14:05:00', '17:40:00'),
+('MAT787', '2025-05-16', '09:00:00', '13:10:00'),
+('MAT787', '2025-05-16', '14:10:00', '17:35:00');
+
+-- Batidas de ponto para Sra. Júlia Dias (MAT122)
+INSERT INTO Ponto (idColaborador, dataRegistro, horarioentrada, horariosaida) VALUES
+('MAT122', '2025-05-17', '07:59:00', '18:01:00'),
+('MAT122', '2025-05-15', '08:02:00', '17:58:00');
+
+-- Batidas de ponto para Lavínia da Mota (MAT438)
+INSERT INTO Ponto (idColaborador, dataRegistro, horarioentrada, horariosaida) VALUES
+('MAT438', '2025-05-17', '08:05:00', '18:00:00'),
+('MAT438', '2025-05-15', '07:55:00', '18:05:00');
+
+-- Batidas de ponto para Srta. Sophia Dias (MAT709)
+INSERT INTO Ponto (idColaborador, dataRegistro, horarioentrada, horariosaida) VALUES
+('MAT709', '2025-05-17', '09:01:00', '12:59:00'),
+('MAT709', '2025-05-17', '14:04:00', '17:36:00'),
+('MAT709', '2025-05-16', '09:05:00', '13:02:00'),
+('MAT709', '2025-05-16', '14:02:00', '17:33:00');
+
+-- Batidas de ponto para Daniela Sales (MAT655)
+INSERT INTO Ponto (idColaborador, dataRegistro, horarioentrada, horariosaida) VALUES
+('MAT655', '2025-05-17', '08:02:00', '18:03:00'),
+('MAT655', '2025-05-15', '07:58:00', '18:02:00');
+
+-- Batidas de ponto para Olivia Viana (MAT964)
+INSERT INTO Ponto (idColaborador, dataRegistro, horarioentrada, horariosaida) VALUES
+('MAT964', '2025-05-17', '08:08:00', '12:12:00'),
+('MAT964', '2025-05-17', '13:10:00', '16:15:00'),
+('MAT964', '2025-05-16', '08:12:00', '12:18:00'),
+('MAT964', '2025-05-16', '13:18:00', '16:22:00');
+
+-- Batidas de ponto para Dr. Cauê da Mata (MAT239)
+INSERT INTO Ponto (idColaborador, dataRegistro, horarioentrada, horariosaida) VALUES
+('MAT239', '2025-05-17', '07:57:00', '18:04:00'),
+('MAT239', '2025-05-15', '08:04:00', '17:56:00');
+
+-- Batidas de ponto para Augusto Lopes (MAT544)
+INSERT INTO Ponto (idColaborador, dataRegistro, horarioentrada, horariosaida) VALUES
+('MAT544', '2025-05-17', '09:03:00', '13:01:00'),
+('MAT544', '2025-05-17', '14:00:00', '17:37:00'),
+('MAT544', '2025-05-16', '09:06:00', '13:03:00'),
+('MAT544', '2025-05-16', '14:03:00', '17:34:00');
+
+-- Batidas de ponto para Maitê Moraes (MAT783)
+INSERT INTO Ponto (idColaborador, dataRegistro, horarioentrada, horariosaida) VALUES
+('MAT783', '2025-05-17', '08:01:00', '18:01:00'),
+('MAT783', '2025-05-15', '07:59:00', '18:03:00');
+
+
