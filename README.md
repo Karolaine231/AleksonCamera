@@ -1,70 +1,79 @@
-📷 AleksonCamera
-AleksonCamera é uma aplicação em Python com interface gráfica para cadastro e reconhecimento facial de colaboradores. Utiliza OpenCV, Face Recognition e um banco de dados (MySQL ou SQLite) para armazenar e reconhecer rostos automaticamente por meio da webcam.
+# 📷 AleksonCamera
 
-✨ Funcionalidades
+**AleksonCamera** é uma aplicação em Python com interface gráfica para **cadastro e reconhecimento facial** de colaboradores. Utiliza **OpenCV**, **face_recognition** e um banco de dados (**MySQL** ou **SQLite**) para armazenar e reconhecer rostos automaticamente por meio da webcam.
 
-📸 Captura facial com webcam.
+---
 
-🧠 Reconhecimento facial em tempo real.
+## ✨ Funcionalidades
 
-🗃️ Armazenamento de encodings faciais no banco de dados.
+- 📸 Captura facial com webcam  
+- 🧠 Reconhecimento facial em tempo real  
+- 🗃️ Armazenamento de encodings faciais no banco de dados  
+- 🧑‍💼 Interface gráfica amigável com Tkinter  
+- ✅ Atualização automática de dados de colaboradores (nome e matrícula)  
 
-🧑‍💼 Interface gráfica amigável com Tkinter.
+---
 
-✅ Atualização automática de dados de colaboradores (nome e matrícula).
+## 🖥️ Tecnologias Utilizadas
 
+- Python 3.x  
+- [OpenCV](https://opencv.org/)  
+- [face_recognition](https://github.com/ageitgey/face_recognition)  
+- Tkinter (interface gráfica)  
+- MySQL Connector / SQLite3  
+- Pickle (para serialização dos encodings)  
 
-🖥️ Tecnologias utilizadas
-Python 3.x
+---
 
-OpenCV
+## ⚙️ Requisitos
 
-face_recognition
+- Python 3.7 ou superior  
+- Webcam funcional  
+- Servidor MySQL ativo (caso utilize banco de dados online)  
 
-Tkinter
+---
 
-MySQL Connector / SQLite3
+## 🖼️ Interface
 
-Pickle (serialização dos encodings)
+A interface é amigável e pensada para uso por **recepcionistas ou operadores**.  
+Ela inclui:
 
+- Campo para **Nome completo**  
+- Campo para **Matrícula**  
+- Botão **📸 Capturar Foto e Atualizar Encoding**  
+- Instruções interativas durante o processo (ex: *pressione espaço para capturar*)  
 
-⚙️ Requisitos
-Python 3.7 ou superior
+---
 
-Webcam funcional
+## 🔍 Reconhecimento Facial
 
-MySQL Server (caso use banco online)
+O sistema reconhece rostos previamente cadastrados e exibe **nome e matrícula em tempo real** utilizando a câmera.
 
-🖼️ Interface
-A interface é amigável e pensada para uso por recepcionistas ou operadores:
+### Para usar:
+- Execute o script de reconhecimento
+- Mantenha o rosto visível diante da webcam
+- A tecla **`q`** encerra o modo de reconhecimento
 
-Campo para Nome completo
+---
 
-Campo para Matrícula
+## 📌 Observações
 
-Botão 📸 Capturar Foto e Atualizar Encoding
+- Caso o rosto **não seja detectado**, a imagem **não será salva**  
+- Os encodings são armazenados em formato **serializado (pickle)** no banco de dados  
+- Recomenda-se iluminação adequada para melhores resultados  
 
-Instruções interativas (ex: pressione espaço para capturar)
+---
 
-🔍 Reconhecimento Facial
-
-O sistema reconhece rostos previamente cadastrados e exibe nome e matrícula em tempo real usando a câmera. Basta executar o script de reconhecimento e manter o rosto visível na frente da webcam.
-
-📌 Observações
-
-Caso o rosto não seja detectado, a imagem não será salva.
-
-Os encodings são salvos em formato serializado (pickle) no banco.
-
-A tecla q encerra o modo de reconhecimento em tempo real.
-
-🤝 Contribuições
+## 🤝 Contribuições
 
 Agradecimentos especiais a:
 
-Karolaine S. — desenvolvimento da interface gráfica, estruturação do projeto
+- **Karolaine S.** — desenvolvimento da interface gráfica, estruturação do projeto  
+- **Julya Dias** — implementação do reconhecimento facial e integração com o banco de dados  
+- **Professor André** — orientação técnica e suporte acadêmico  
 
-Julya Dias — implementação do reconhecimento facial e integração com o banco de dados
+---
 
-Professor André — orientação técnica e suporte acadêmico
+## 📬 Licença
 
+Este projeto é de livre uso educacional. Para outros fins, consulte os autores.
