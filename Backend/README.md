@@ -143,4 +143,5 @@ const char* serverName = "https://SEU_DOMINIO.com/select.php";
 
 ## 🤝 Contribuições
 
-Contribuições são bem-vindas! Relate bugs ou envie pull requests para melhorar o projeto.
+- Julya Dias 
+- Professor André
