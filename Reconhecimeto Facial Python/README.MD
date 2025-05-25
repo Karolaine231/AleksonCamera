@@ -16,18 +16,18 @@
 
 ## 🖥️ Tecnologias Utilizadas
 
-- Python 3.x  
+- Python 3.13.3
 - [OpenCV](https://opencv.org/)  
 - [face_recognition](https://github.com/ageitgey/face_recognition)  
 - Tkinter (interface gráfica)  
-- MySQL Connector / SQLite3  
+- MySQL Connector / BeeKeeper 
 - Pickle (para serialização dos encodings)  
 
 ---
 
 ## ⚙️ Requisitos
 
-- Python 3.7 ou superior  
+- Python 3.10 ou superior  
 - Webcam funcional  
 - Servidor MySQL ativo (caso utilize banco de dados online)  
 
