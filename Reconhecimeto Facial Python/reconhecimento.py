@@ -1,68 +1,170 @@
-import cv2
-import face_recognition
-import sqlite3
-import pickle
+import cv2  # OpenCV para processamento de imagem e captura de vídeo
+import face_recognition  # Para detecção e reconhecimento de faces
+import mysql.connector  # Para interagir com o banco de dados MySQL
+import pickle  # Para serializar/desserializar objetos Python (os encodings faciais)
+import requests  # Para fazer requisições HTTP para a API backend
+from datetime import datetime  # Para obter data e hora atuais
+import base64  # Para codificar os encodings faciais em base64 antes de enviar
 
-# Conectar ao banco e carregar dados
-conn = sqlite3.connect('banco.db')
-cursor = conn.cursor()
-cursor.execute("SELECT nome, matricula, encoding FROM pessoas")
-dados = cursor.fetchall()
-conn.close()
+# !!! IMPORTANTE: Ajuste esta URL para apontar para o SEU ARQUIVO PHP específico !!!
+# Exemplo: "https://<seu_replit_id>.replit.dev/registrar_ponto_api.php"
+API_URL = "https://a0b480e3-0685-44b9-83e7-dc8c6c8e5e3e-00-tpx8y9ifm3f0.kirk.replit.dev/"
 
-# Separar nomes e encodings
-nomes = []
-matriculas = []
-encodings_conhecidos = []
+# Suas credenciais de conexão ao banco de dados MySQL para carregar os rostos conhecidos
+MYSQL_HOST = "www.thyagoquintas.com.br"
+MYSQL_PORT = 3306
+MYSQL_USER = "engenharia_25"
+MYSQL_PASSWORD = "caranguejoraposa"
+MYSQL_DATABASE = "engenharia_25"
 
-for nome, matricula, encoding_blob in dados:
-    nomes.append(nome)
-    matriculas.append(matricula)
-    encodings_conhecidos.append(pickle.loads(encoding_blob))
+# Preparar listas para armazenar os dados carregados
+nomes_conhecidos = []
+matriculas_conhecidas = []
+encodings_conhecidos = [] # Lista para armazenar os vetores de características faciais
 
-# Iniciar câmera
+## Conectar ao banco de dados MySQL e carregar dados de pessoas conhecidas
+try:
+    print(f"Conectando ao MySQL em {MYSQL_HOST}:{MYSQL_PORT}...")
+    conn_mysql = mysql.connector.connect(
+        host=MYSQL_HOST,
+        port=MYSQL_PORT,
+        user=MYSQL_USER,
+        password=MYSQL_PASSWORD,
+        database=MYSQL_DATABASE,
+        connection_timeout=10 # Adiciona um timeout para a conexão
+    )
+    cursor_mysql = conn_mysql.cursor()
+    print("Conexão MySQL bem-sucedida. Carregando dados dos colaboradores...")
+
+    # Seleciona nome, matrícula e o encoding facial da tabela 'Colaborador'
+    # Certifique-se de que a coluna 'encoding' na sua tabela MySQL é do tipo BLOB ou similar
+    # e que a tabela 'Colaborador' existe e tem esses campos.
+    cursor_mysql.execute("SELECT nome, matricula, encoding FROM Colaborador WHERE encoding IS NOT NULL")
+    dados_mysql = cursor_mysql.fetchall()
+
+    if not dados_mysql:
+        print("AVISO: Nenhum colaborador com encoding encontrado no banco de dados MySQL.")
+    else:
+        for nome_db, matricula_db, encoding_blob in dados_mysql:
+            if encoding_blob: # Garante que o encoding_blob não é None
+                try:
+                    nomes_conhecidos.append(nome_db)
+                    matriculas_conhecidas.append(matricula_db)
+                    encodings_conhecidos.append(pickle.loads(encoding_blob))
+                except pickle.UnpicklingError as pe:
+                    print(f"Erro ao desserializar encoding para {nome_db} ({matricula_db}): {pe}")
+            else:
+                print(f"AVISO: Encoding nulo para {nome_db} ({matricula_db}).")
+
+    cursor_mysql.close()
+    conn_mysql.close()
+    print(f"Dados de {len(encodings_conhecidos)} colaboradores carregados do MySQL com sucesso.")
+    if not encodings_conhecidos:
+        print("AVISO IMPORTANTE: Nenhum encoding facial conhecido foi carregado. O reconhecimento não funcionará.")
+
+except mysql.connector.Error as err:
+    print(f"ERRO CRÍTICO ao conectar ou carregar dados do MySQL: {err}")
+    print("Verifique suas credenciais, a conexão com o banco de dados e se a tabela 'Colaborador' existe com os campos corretos.")
+    exit() # Sai do programa se não puder carregar os dados essenciais.
+
+# Iniciar a captura de vídeo da câmera padrão
 camera = cv2.VideoCapture(0)
-print("Pressione 'q' para sair.")
+if not camera.isOpened():
+    print("ERRO: Não foi possível abrir a câmera.")
+    exit()
+print("Câmera iniciada. Pressione 'q' para sair.")
 
 while True:
     ret, frame = camera.read()
     if not ret:
+        print("Erro ao capturar frame da câmera. Encerrando...")
         break
 
-    # Reduzir tamanho para acelerar
     frame_pequeno = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
     rgb_pequeno = cv2.cvtColor(frame_pequeno, cv2.COLOR_BGR2RGB)
 
-    # Detectar rostos e encodings na imagem
     face_locations = face_recognition.face_locations(rgb_pequeno)
-    face_encodings = face_recognition.face_encodings(rgb_pequeno, face_locations)
+    face_encodings_detectados = face_recognition.face_encodings(rgb_pequeno, face_locations)
 
-    for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodings):
-        matches = face_recognition.compare_faces(encodings_conhecidos, face_encoding)
-        nome = "Desconhecido"
-        matricula = ""
+    for (top, right, bottom, left), face_encoding_detectado in zip(face_locations, face_encodings_detectados):
+        nome_identificado = "Desconhecido"
+        matricula_identificada = ""
 
-        if True in matches:
-            index = matches.index(True)
-            nome = nomes[index]
-            matricula = matriculas[index]
+        if encodings_conhecidos: # Só tenta reconhecer se houver encodings carregados
+            matches = face_recognition.compare_faces(encodings_conhecidos, face_encoding_detectado)
+            if True in matches:
+                index_match = matches.index(True)
+                nome_identificado = nomes_conhecidos[index_match]
+                matricula_identificada = matriculas_conhecidas[index_match]
 
-        # Voltar ao tamanho original
+                encoding_para_envio = encodings_conhecidos[index_match]
+                pickled_encoding = pickle.dumps(encoding_para_envio)
+                encoding_serializado_b64 = base64.b64encode(pickled_encoding).decode('utf-8')
+
+                agora = datetime.now()
+                dataRegistro = agora.strftime('%Y-%m-%d')
+                horarioentrada = agora.strftime('%H:%M:%S')
+
+                payload = {
+                    "encoding": encoding_serializado_b64,
+                    "dataRegistro": dataRegistro,
+                    "horarioentrada": horarioentrada,
+                    "matricula": matricula_identificada # Enviando matrícula, o PHP pode ou não usar
+                }
+                
+                print(f"DEBUG PYTHON: Payload a ser enviado: {payload}")
+
+                try:
+                    response = requests.post(API_URL, json=payload, timeout=10) # Adicionado timeout
+                    
+                    print(f"DEBUG PYTHON: Status Code da Resposta: {response.status_code}")
+                    print(f"DEBUG PYTHON: Cabeçalhos da Resposta: {response.headers}")
+                    print(f"DEBUG PYTHON: Texto Bruto da Resposta: '{response.text}'")
+
+                    # Verifica se o status code indica sucesso (2xx) e se o content-type é JSON
+                    if 200 <= response.status_code < 300 and \
+                       response.headers.get("Content-Type", "").lower().startswith("application/json"):
+                        try:
+                            json_response = response.json()
+                            print(f"Registro para {nome_identificado} ({matricula_identificada}) enviado. Resposta do backend:", json_response)
+                        except ValueError as json_err: # Erro específico de decodificação JSON
+                            print(f"ERRO ao DECODIFICAR JSON da resposta para {nome_identificado}. Erro: {json_err}")
+                    else:
+                        print(f"Resposta do backend não foi 2xx bem-sucedido e/ou não é JSON. Status: {response.status_code}.")
+                        # Se quiser que erros 4xx/5xx causem uma exceção, descomente a linha abaixo:
+                        # response.raise_for_status() 
+
+                except requests.exceptions.HTTPError as http_err:
+                    print(f"ERRO HTTP ao enviar dados para {nome_identificado}: {http_err}")
+                    if response is not None:
+                         print(f"Texto da resposta (HTTP Error): '{response.text}'")
+                except requests.exceptions.Timeout:
+                    print(f"TIMEOUT ao enviar dados para {nome_identificado} para a URL: {API_URL}")
+                except requests.exceptions.RequestException as req_err:
+                    print(f"ERRO DE REQUISIÇÃO ao enviar dados para {nome_identificado}: {req_err}")
+                except Exception as e: # Captura outros erros inesperados
+                    print(f"ERRO INESPERADO ao processar para {nome_identificado}: {e}")
+                    if 'response' in locals() and hasattr(response, 'text'):
+                        print(f"Texto da resposta (Erro Inesperado): '{response.text}'")
+        else: # Caso não haja encodings conhecidos carregados
+            if face_locations: # Se detectou um rosto mas não tem com quem comparar
+                 print("Rosto detectado, mas nenhum encoding conhecido carregado para comparação.")
+
+
         top *= 4
         right *= 4
         bottom *= 4
         left *= 4
 
-        # Mostrar rosto e nome na tela
+        texto_display = f"{nome_identificado} ({matricula_identificada})" if matricula_identificada else nome_identificado
         cv2.rectangle(frame, (left, top), (right, bottom), (0, 255, 0), 2)
-        texto = f"{nome} - {matricula}" if nome != "Desconhecido" else nome
-        cv2.putText(frame, texto, (left, top - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+        cv2.putText(frame, texto_display, (left, top - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
 
-    # Mostrar imagem
-    cv2.imshow("Reconhecimento Facial", frame)
+    cv2.imshow("Reconhecimento Facial - Pressione 'q' para sair", frame)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
 camera.release()
 cv2.destroyAllWindows()
+print("Sistema de reconhecimento facial encerrado com sucesso.")
