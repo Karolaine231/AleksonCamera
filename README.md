@@ -1,79 +1,138 @@
-# 📷 AleksonCamera
+# 📸 Sistema de Reconhecimento e Controle de Ponto Inteligente
 
-**AleksonCamera** é uma aplicação em Python com interface gráfica para **cadastro e reconhecimento facial** de colaboradores. Utiliza **OpenCV**, **face_recognition** e um banco de dados (**MySQL** ou **SQLite**) para armazenar e reconhecer rostos automaticamente por meio da webcam.
+O **Sistema de Reconhecimento e Controle de Ponto Inteligente** é uma solução completa para gerenciamento de acesso e registro de ponto de colaboradores, integrando reconhecimento facial, um robusto backend MySQL com PHP e um frontend baseado em ESP32 para automação.
 
 ---
 
 ## ✨ Funcionalidades
 
-- 📸 Captura facial com webcam  
-- 🧠 Reconhecimento facial em tempo real  
-- 🗃️ Armazenamento de encodings faciais no banco de dados  
-- 🧑‍💼 Interface gráfica amigável com Tkinter  
-- ✅ Atualização automática de dados de colaboradores (nome e matrícula)  
+### AleksonCamera (Módulo de Cadastro e Reconhecimento Facial - Python)
+- 📷 **Captura Facial com Webcam**
+- 🔍 **Reconhecimento Facial em Tempo Real**
+- 💾 **Armazenamento de Encodings Faciais no MySQL**
+- 🖼️ **Interface Gráfica com Tkinter**
+- 📝 **Cadastro e Atualização de Dados**
+- 👨‍🏫 **Instruções Interativas para o Usuário**
+
+### Sistema de Controle de Ponto (Backend PHP e Frontend ESP32)
+- 🏢 **Gerenciamento de Empresas e Departamentos**
+- 👷 **Cadastro de Colaboradores com Dados Completos e Encoding Facial**
+- 🕒 **Registro de Ponto Automatizado com Data/Hora**
+- 🔄 **Backup Automático via Trigger MySQL**
+- 🛠️ **API PHP para Registro (`index.php`) e Sincronização (`select.php`)**
+- 📡 **Frontend com ESP32: Automação com Sensores e Saídas Digitais**
 
 ---
 
 ## 🖥️ Tecnologias Utilizadas
 
-- Python 3.x  
-- [OpenCV](https://opencv.org/)  
-- [face_recognition](https://github.com/ageitgey/face_recognition)  
-- Tkinter (interface gráfica)  
-- MySQL Connector / SQLite3  
-- Pickle (para serialização dos encodings)  
+### Módulo Python (AleksonCamera)
+- Python 3.10+
+- `opencv-python`
+- `face_recognition`
+- `tkinter`
+- `mysql-connector-python`
+- `pickle`
+- `requests`
+
+### Backend (PHP)
+- PHP 7+
+- MySQL
+
+### Frontend (ESP32 / Arduino)
+- ESP32 com Arduino IDE
+- Bibliotecas: `WiFi.h`, `HTTPClient.h`, `ArduinoJson.h (v6+)`, `DHT.h`
 
 ---
 
 ## ⚙️ Requisitos
 
-- Python 3.7 ou superior  
-- Webcam funcional  
-- Servidor MySQL ativo (caso utilize banco de dados online)  
+- Python 3.10 ou superior
+- Webcam funcional
+- Servidor MySQL com acesso remoto
+- Servidor Web com suporte a PHP
+- Placa ESP32 com Arduino IDE
 
 ---
 
-## 🖼️ Interface
+## 🏛️ Estrutura do Banco de Dados (MySQL)
 
-A interface é amigável e pensada para uso por **recepcionistas ou operadores**.  
-Ela inclui:
-
-- Campo para **Nome completo**  
-- Campo para **Matrícula**  
-- Botão **📸 Capturar Foto e Atualizar Encoding**  
-- Instruções interativas durante o processo (ex: *pressione espaço para capturar*)  
+- `BDEmpresaInterno`
+- `Departamento`
+- `Colaborador` (inclui `encoding` tipo BLOB)
+- `Ponto` (registros temporários, apagados após leitura)
+- `BackupPontoCompleto` (backup automático via trigger)
 
 ---
 
-## 🔍 Reconhecimento Facial
+## 🚀 Como Usar
 
-O sistema reconhece rostos previamente cadastrados e exibe **nome e matrícula em tempo real** utilizando a câmera.
+### 1. Configuração do Banco de Dados
+- Crie as tabelas conforme especificado.
+- Configure o trigger para backup automático.
 
-### Para usar:
-- Execute o script de reconhecimento
-- Mantenha o rosto visível diante da webcam
-- A tecla **`q`** encerra o modo de reconhecimento
+### 2. Configuração do Backend (PHP)
+- Hospede `index.php` e `select.php`.
+- Ajuste as credenciais MySQL.
+
+#### Exemplo de `index.php` (POST):
+```json
+{
+  "encoding": "base64_string_do_encoding_facial",
+  "dataRegistro": "YYYY-MM-DD",
+  "horarioentrada": "HH:MM:SS",
+  "matricula": "XXXXXXXX"
+}
+```
+
+#### Exemplo de resposta:
+```json
+{"status": "success", "message": "Reconhecimento confirmado...", "matricula": "...", "nome": "..."}
+```
+
+### 3. Configuração do Módulo Python
+- Instale com:  
+  ```bash
+  pip install opencv-python face_recognition mysql-connector-python requests
+  ```
+- Configure variáveis de conexão e execute:  
+  ```bash
+  python seu_script_cadastro_reconhecimento.py
+  ```
+
+### 4. Configuração do ESP32
+- Instale bibliotecas no Arduino IDE.
+- Ajuste SSID, senha e URL da API.
+- Faça upload para o ESP32.
 
 ---
 
-## 📌 Observações
+## 🛠️ Teste Completo
 
-- Caso o rosto **não seja detectado**, a imagem **não será salva**  
-- Os encodings são armazenados em formato **serializado (pickle)** no banco de dados  
-- Recomenda-se iluminação adequada para melhores resultados  
+1. Inicie o módulo AleksonCamera.
+2. Cadastre um colaborador e capture o rosto.
+3. Realize o reconhecimento com a câmera.
+4. Verifique o registro no banco (tabela `Ponto` e `BackupPontoCompleto`).
+5. Confirme a leitura e acionamento no ESP32.
+
+---
+
+## 📌 Observações Adicionais
+
+- Iluminação adequada melhora a detecção facial.
+- Registros na tabela `Ponto` são removidos após leitura.
+- A lógica de entrada/saída é definida no backend PHP.
 
 ---
 
 ## 🤝 Contribuições
 
-Agradecimentos especiais a:
-
-- **Karolaine S.** — desenvolvimento da interface gráfica, estruturação do projeto  
-- **Julya Dias** — implementação do reconhecimento facial e integração com o banco de dados  
-- **Professor André** — orientação técnica e suporte acadêmico  
+- **Karolaine S.** — Interface gráfica e estruturação do projeto
+- **Julya Dias** — Reconhecimento facial e integração com ESP32
+- **Professor André** — Orientação técnica e suporte acadêmico
 
 ---
 
 ## 📬 Licença
 
-Este projeto é de livre uso educacional. Para outros fins, consulte os autores.
+Uso livre para fins educacionais. Para usos comerciais, consulte os autores.
