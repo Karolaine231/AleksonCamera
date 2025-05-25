@@ -45,17 +45,6 @@ Ela inclui:
 
 ---
 
-## 🔍 Reconhecimento Facial
-
-O sistema reconhece rostos previamente cadastrados e exibe **nome e matrícula em tempo real** utilizando a câmera.
-
-### Para usar:
-- Execute o script de reconhecimento
-- Mantenha o rosto visível diante da webcam
-- A tecla **`q`** encerra o modo de reconhecimento
-
----
-
 ## 📌 Observações
 
 - Caso o rosto **não seja detectado**, a imagem **não será salva**  
