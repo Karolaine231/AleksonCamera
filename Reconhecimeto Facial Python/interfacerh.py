@@ -13,12 +13,17 @@ class RHApp(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Sistema de Gestão de RH - Colaboradores")
-        self.geometry("1000x700") # Increased width and height for better spacing
-        self.minsize(950, 600) # Minimum size to prevent layout issues
+        self.geometry("1100x750")  # Increased width and height for better spacing
+        self.minsize(1000, 700)    # Minimum size to prevent layout issues
 
         # Configure grid for main window to be resizable
-        self.grid_rowconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=0) # Top frame fixed height
+        self.grid_rowconfigure(1, weight=3) # Treeview takes more vertical space
+        self.grid_rowconfigure(2, weight=1) # Input/button frame
         self.grid_columnconfigure(0, weight=1)
+
+        self._sort_column = "nome"  # Default sort column for colaboradores
+        self._sort_direction = "ASC" # Default sort direction
 
         # --- Styling ---
         self.style = ttk.Style(self)
@@ -61,36 +66,34 @@ class RHApp(tk.Tk):
         # --- Main Layout Frames ---
         # Top Frame for title or logo
         top_frame = ttk.Frame(self, padding="15 10")
-        top_frame.grid(row=0, column=0, columnspan=2, sticky="ew")
+        top_frame.grid(row=0, column=0, sticky="ew")
         ttk.Label(top_frame, text="Gestão de Colaboradores",
                   font=("Segoe UI", 18, "bold"), background="#f0f0f0").pack(pady=5)
         
         # Frame for the Treeview (list of data)
         tree_frame = ttk.Frame(self, padding="10 0 10 10")
-        tree_frame.grid(row=1, column=0, columnspan=2, sticky="nsew")
-        self.grid_rowconfigure(1, weight=3) # Treeview takes more vertical space
+        tree_frame.grid(row=1, column=0, sticky="nsew")
 
         # Frame for Input Fields and Action Buttons
         input_button_frame = ttk.Frame(self, padding="10 10 10 15")
-        input_button_frame.grid(row=2, column=0, columnspan=2, sticky="ew")
-        self.grid_rowconfigure(2, weight=1)
+        input_button_frame.grid(row=2, column=0, sticky="ew")
+        input_button_frame.grid_columnconfigure(0, weight=1) # Fields frame
+        input_button_frame.grid_columnconfigure(1, weight=0) # Buttons frame
+
+        # --- Search Bar ---
+        search_frame = ttk.Frame(input_button_frame, padding="5")
+        search_frame.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 10))
+        search_frame.grid_columnconfigure(1, weight=1) # Make search entry expandable
+
+        ttk.Label(search_frame, text="Buscar:", font=("Segoe UI", 10, "bold")).grid(row=0, column=0, sticky="w", padx=5)
+        self.search_entry = ttk.Entry(search_frame, width=40)
+        self.search_entry.grid(row=0, column=1, sticky="ew", padx=5)
+        self.search_entry.bind("<KeyRelease>", self.filtrar_dados) # Filters on key release
+        
+        ttk.Button(search_frame, text="Limpar Busca", command=lambda: [self.search_entry.delete(0, tk.END), self.carregar_colaboradores()], style="TButton").grid(row=0, column=2, padx=5)
 
         # --- Treeview Setup ---
-        self.tree = ttk.Treeview(tree_frame, columns=("matricula", "nome", "funcao", "escala", "horariocontratual", "encoding"), show="headings")
-        
-        # Define column headings and widths
-        self.tree.heading("matricula", text="Matrícula", anchor="w")
-        self.tree.column("matricula", width=80, minwidth=60, stretch=False)
-        self.tree.heading("nome", text="Nome Completo", anchor="w")
-        self.tree.column("nome", width=200, minwidth=150)
-        self.tree.heading("funcao", text="Função", anchor="w")
-        self.tree.column("funcao", width=150, minwidth=100)
-        self.tree.heading("escala", text="Escala", anchor="w")
-        self.tree.column("escala", width=120, minwidth=80)
-        self.tree.heading("horariocontratual", text="Horário Contratual", anchor="w")
-        self.tree.column("horariocontratual", width=130, minwidth=100)
-        self.tree.heading("encoding", text="Encoding", anchor="w")
-        self.tree.column("encoding", width=100, minwidth=80)
+        self.tree = ttk.Treeview(tree_frame, show="headings") # Columns are defined dynamically
         
         self.tree.pack(fill="both", expand=True)
 
@@ -102,39 +105,39 @@ class RHApp(tk.Tk):
         self.tree.tag_configure('oddrow', background='#e8f2ff') # Lighter blue for odd rows
         self.tree.tag_configure('evenrow', background='white')
 
+        # Bind Treeview selection event and heading click for sorting
+        self.tree.bind("<<TreeviewSelect>>", self.preencher_campos)
+        self.tree.bind("<Button-1>", self.on_treeview_heading_click)
+
         # --- Input Fields Layout ---
-        # Using a sub-frame for input fields to better manage their grid layout
         fields_frame = ttk.Frame(input_button_frame, padding="10")
-        fields_frame.pack(side="left", fill="both", expand=True)
+        fields_frame.grid(row=1, column=0, sticky="nsew", padx=5, pady=5)
+        fields_frame.grid_columnconfigure(1, weight=1) # Make entry column expandable
 
         # Labels and Entries
-        labels = ["Matrícula:", "Nome:", "Função:", "Escala:", "Horário Contratual:", "Encoding:"]
-        entries = []
+        labels = ["Matrícula:", "Nome:", "Função:", "Escala:", "Horário Contratual:"]
         self.entry_matricula = ttk.Entry(fields_frame)
         self.entry_nome = ttk.Entry(fields_frame)
         self.entry_funcao = ttk.Entry(fields_frame)
         self.entry_escala = ttk.Entry(fields_frame)
         self.entry_horariocontratual = ttk.Entry(fields_frame)
-        self.entry_encoding = ttk.Entry(fields_frame)
         
         self.entry_widgets = [self.entry_matricula, self.entry_nome, self.entry_funcao,
-                              self.entry_escala, self.entry_horariocontratual, self.entry_encoding]
+                              self.entry_escala, self.entry_horariocontratual]
 
         for i, label_text in enumerate(labels):
             ttk.Label(fields_frame, text=label_text).grid(row=i, column=0, sticky="w", padx=5, pady=3)
             self.entry_widgets[i].grid(row=i, column=1, sticky="ew", padx=5, pady=3)
-            fields_frame.grid_columnconfigure(1, weight=1) # Make entry column expandable
 
         # --- Buttons Layout ---
-        # Using a sub-frame for buttons
         button_actions_frame = ttk.Frame(input_button_frame, padding="10")
-        button_actions_frame.pack(side="right", fill="y")
+        button_actions_frame.grid(row=1, column=1, sticky="nswe", padx=5, pady=5)
 
         # Define buttons and their commands with a consistent style
         buttons_data = [
             ("Adicionar", self.adicionar_colaborador, "#4CAF50"), # Green for Add
             ("Editar", self.editar_colaborador, "#2196F3"),      # Blue for Edit
-            ("Excluir", self.excluir_colaborador, "#f44336"),    # Red for Delete
+            ("Excluir", self.excluir_colaborador, "#f44336"),     # Red for Delete
             ("Atualizar Lista", self.carregar_colaboradores, "#FFC107"), # Amber for Refresh
             ("Ver Backup de Ponto", self.carregar_backup_ponto, "#9C27B0"), # Purple for Backup
             ("Voltar para Colaboradores", self.carregar_colaboradores_default, "#00BCD4") # Cyan for Back
@@ -157,13 +160,9 @@ class RHApp(tk.Tk):
             btn = ttk.Button(button_actions_frame, text=text, command=command, style=btn_style_name)
             btn.pack(fill="x", pady=5)
 
-
         # Initial setup
         self.conectar_banco()
-        self.carregar_colaboradores()
-
-        # Bind Treeview selection event
-        self.tree.bind("<<TreeviewSelect>>", self.preencher_campos)
+        self.carregar_colaboradores() # Load default view initially
 
     def darken_color(self, hex_color, factor):
         """Darkens a hex color by a given factor (0-100)."""
@@ -173,6 +172,7 @@ class RHApp(tk.Tk):
         return '#%02x%02x%02x' % darker_rgb
 
     def conectar_banco(self):
+        """Tries to connect to the MySQL database."""
         try:
             self.conn = mysql.connector.connect(
                 host=DB_HOST,
@@ -182,76 +182,155 @@ class RHApp(tk.Tk):
                 database=DB_NAME,
                 charset='utf8mb4'
             )
+            messagebox.showinfo("Conexão", "Conectado ao banco de dados com sucesso!")
         except mysql.connector.Error as e:
             messagebox.showerror("Erro de Conexão", f"Não foi possível conectar ao banco de dados:\n{e}")
-            self.destroy()
+            self.destroy() # Close application if connection fails
+
+    def on_treeview_heading_click(self, event):
+        """Handles clicks on Treeview column headings for sorting."""
+        region = self.tree.identify("region", event.x, event.y)
+        if region == "heading":
+            column_id = self.tree.identify_column(event.x) # Returns #1, #2, etc.
+            column_name = self.tree.heading(column_id, "text") # Get the displayed text of the heading
+
+            # Map display names to actual database column names
+            column_map_colaboradores = {
+                "Matrícula": "matricula",
+                "Nome Completo": "nome",
+                "Função": "funcao",
+                "Escala": "escala",
+                "Horário Contratual": "horariocontratual"
+            }
+            column_map_backup_ponto = {
+                "Matrícula": "matricula",
+                "Nome do Colaborador": "nome_colaborador",
+                "Data Registro": "data_registro",
+                "Entrada": "horario_entrada",
+                "Saída": "horario_saida",
+                "Departamento": "nome_departamento"
+            }
+            
+            # Determine which mapping to use based on current Treeview columns
+            if "Data Registro" in self.tree["columns"]: # Check if it's the BackupPontoCompleto view
+                db_column = column_map_backup_ponto.get(column_name)
+            else: # Assume Colaboradores view
+                db_column = column_map_colaboradores.get(column_name)
+
+            if db_column:
+                # Toggle direction if the same column is clicked again
+                if hasattr(self, '_sort_column') and self._sort_column == db_column:
+                    self._sort_direction = "DESC" if self._sort_direction == "ASC" else "ASC"
+                else:
+                    self._sort_column = db_column
+                    self._sort_direction = "ASC"
+                
+                self.filtrar_dados() # Re-load data with new sort order
 
     def carregar_backup_ponto(self):
+        """Loads and displays data from the BackupPontoCompleto view."""
         try:
             cursor = self.conn.cursor()
-            cursor.execute("""
-                SELECT matricula, nome_colaborador, data_registro, horario_entrada, horario_saida, nome_departamento
-                FROM BackupPontoCompleto
-                ORDER BY data_registro DESC, horario_entrada DESC
-            """)
-            rows = cursor.fetchall()
 
             # Update Treeview columns for BackupPontoCompleto
-            colunas = ["Matrícula", "Nome do Colaborador", "Data Registro", "Entrada", "Saída", "Departamento"]
+            colunas = ("Matrícula", "Nome do Colaborador", "Data Registro", "Entrada", "Saída", "Departamento")
             self.tree["columns"] = colunas
-            for col_name, display_text in zip(colunas, ["Matrícula", "Nome do Colaborador", "Data Registro", "Entrada", "Saída", "Departamento"]):
-                self.tree.heading(col_name, text=display_text, anchor="w")
-                self.tree.column(col_name, width=100 if col_name in ["Matrícula", "Entrada", "Saída"] else 150)
+            for col_name in colunas:
+                self.tree.heading(col_name, text=col_name, anchor="w")
+                if col_name in ["Matrícula", "Entrada", "Saída"]:
+                    self.tree.column(col_name, width=100, minwidth=60, stretch=False)
+                else:
+                    self.tree.column(col_name, width=150, minwidth=100)
 
-            self.tree.delete(*self.tree.get_children())
-            for i, row in enumerate(rows):
-                tag = 'oddrow' if i % 2 else 'evenrow'
-                self.tree.insert("", "end", values=row, tags=(tag,))
+            # Set default sorting for backup view
+            self._sort_column = "data_registro"
+            self._sort_direction = "DESC"
 
-            cursor.close()
+            self.filtrar_dados() # Use filter to load with new columns and sort
+            self.limpar_campos() # Clear fields when switching view
+
         except mysql.connector.Error as e:
             messagebox.showerror("Erro", f"Erro ao carregar backup de ponto:\n{e}")
-        self.limpar_campos() # Clear fields when switching view
 
     def carregar_colaboradores_default(self):
+        """Resets Treeview columns to original Colaborador columns and reloads."""
         # Reset Treeview columns to original Colaborador columns
-        colunas_colaborador = ("matricula", "nome", "funcao", "escala", "horariocontratual", "encoding")
+        colunas_colaborador = ("matricula", "nome", "funcao", "escala", "horariocontratual")
         self.tree["columns"] = colunas_colaborador
-        self.tree.heading("matricula", text="Matrícula")
-        self.tree.column("matricula", width=80)
-        self.tree.heading("nome", text="Nome")
-        self.tree.column("nome", width=200)
-        self.tree.heading("funcao", text="Função")
-        self.tree.column("funcao", width=150)
-        self.tree.heading("escala", text="Escala")
-        self.tree.column("escala", width=120)
-        self.tree.heading("horariocontratual", text="Horário Contratual")
-        self.tree.column("horariocontratual", width=130)
-        self.tree.heading("encoding", text="Encoding")
-        self.tree.column("encoding", width=100)
-        self.carregar_colaboradores()
+        self.tree.heading("matricula", text="Matrícula", anchor="w")
+        self.tree.column("matricula", width=80, minwidth=60, stretch=False)
+        self.tree.heading("nome", text="Nome Completo", anchor="w")
+        self.tree.column("nome", width=200, minwidth=150)
+        self.tree.heading("funcao", text="Função", anchor="w")
+        self.tree.column("funcao", width=150, minwidth=100)
+        self.tree.heading("escala", text="Escala", anchor="w")
+        self.tree.column("escala", width=120, minwidth=80)
+        self.tree.heading("horariocontratual", text="Horário Contratual", anchor="w")
+        self.tree.column("horariocontratual", width=130, minwidth=100)
+        
+        # Set default sorting for collaborators view
+        self._sort_column = "nome"
+        self._sort_direction = "ASC"
+        
+        self.filtrar_dados() # Use filter to load with new columns and sort
         self.limpar_campos() # Clear fields when switching view
 
     def carregar_colaboradores(self):
+        """Loads and displays all collaborators (default view)."""
+        # This function is now mostly a wrapper to call carregar_colaboradores_default
+        # as it also sets up the columns and sorting defaults.
+        self.carregar_colaboradores_default()
+
+    def filtrar_dados(self, event=None):
+        """Filters and sorts data in the Treeview based on search term and current sort order."""
+        search_term = self.search_entry.get().strip()
+        
+        # Clear the Treeview first
+        for item in self.tree.get_children():
+            self.tree.delete(item)
+
         try:
             cursor = self.conn.cursor()
-            cursor.execute("SELECT matricula, nome, funcao, escala, horariocontratual, encoding FROM Colaborador ORDER BY nome")
+            
+            # Determine which table/view to query based on current Treeview columns
+            is_backup_ponto_view = "Data Registro" in self.tree["columns"]
+
+            if is_backup_ponto_view:
+                query = f"""
+                    SELECT matricula, nome_colaborador, data_registro, horario_entrada, horario_saida, nome_departamento
+                    FROM BackupPontoCompleto
+                    WHERE matricula LIKE %s OR nome_colaborador LIKE %s OR nome_departamento LIKE %s
+                    ORDER BY {self._sort_column} {self._sort_direction}
+                """
+                params = (f"%{search_term}%", f"%{search_term}%", f"%{search_term}%")
+                
+            else: # Colaboradores view
+                query = f"""
+                    SELECT matricula, nome, funcao, escala, horariocontratual 
+                    FROM Colaborador 
+                    WHERE matricula LIKE %s OR nome LIKE %s OR funcao LIKE %s OR escala LIKE %s
+                    ORDER BY {self._sort_column} {self._sort_direction}
+                """
+                params = (f"%{search_term}%", f"%{search_term}%", f"%{search_term}%", f"%{search_term}%")
+            
+            cursor.execute(query, params)
             rows = cursor.fetchall()
-            self.tree.delete(*self.tree.get_children())
+            
             for i, row in enumerate(rows):
                 tag = 'oddrow' if i % 2 else 'evenrow'
                 self.tree.insert("", "end", values=row, tags=(tag,))
+            
             cursor.close()
         except mysql.connector.Error as e:
-            messagebox.showerror("Erro", f"Erro ao carregar colaboradores:\n{e}")
+            messagebox.showerror("Erro de Busca/Carregamento", f"Erro ao filtrar ou carregar dados:\n{e}")
 
     def adicionar_colaborador(self):
+        """Adds a new collaborator to the database."""
         matricula = self.entry_matricula.get().strip()
         nome = self.entry_nome.get().strip()
         funcao = self.entry_funcao.get().strip()
         escala = self.entry_escala.get().strip()
         horariocontratual = self.entry_horariocontratual.get().strip()
-        encoding = self.entry_encoding.get().strip()
 
         if not matricula or not nome:
             messagebox.showwarning("Campos Obrigatórios", "Por favor, preencha a **Matrícula** e o **Nome** do colaborador.")
@@ -264,8 +343,8 @@ class RHApp(tk.Tk):
                 messagebox.showwarning("Aviso", "Já existe um colaborador com esta **Matrícula**.")
             else:
                 cursor.execute(
-                    "INSERT INTO Colaborador (matricula, nome, funcao, escala, horariocontratual, encoding) VALUES (%s, %s, %s, %s, %s, %s)",
-                    (matricula, nome, funcao, escala, horariocontratual, encoding)
+                    "INSERT INTO Colaborador (matricula, nome, funcao, escala, horariocontratual) VALUES (%s, %s, %s, %s, %s)",
+                    (matricula, nome, funcao, escala, horariocontratual)
                 )
                 self.conn.commit()
                 messagebox.showinfo("Sucesso", "Colaborador adicionado com sucesso!")
@@ -276,9 +355,15 @@ class RHApp(tk.Tk):
             messagebox.showerror("Erro", f"Ocorreu um erro ao adicionar o colaborador:\n{e}")
 
     def excluir_colaborador(self):
+        """Deletes a selected collaborator from the database."""
         selected_item = self.tree.selection()
         if not selected_item:
             messagebox.showwarning("Seleção Necessária", "Selecione um colaborador na lista para excluí-lo.")
+            return
+
+        # Ensure we are in the Colaborador view before attempting to delete
+        if "Data Registro" in self.tree["columns"]:
+            messagebox.showwarning("Operação Não Permitida", "Exclusão não disponível na visualização de Backup de Ponto. Volte para a lista de Colaboradores.")
             return
 
         matricula_to_delete = self.tree.item(selected_item[0])["values"][0]
@@ -299,15 +384,20 @@ class RHApp(tk.Tk):
             messagebox.showerror("Erro", f"Ocorreu um erro ao excluir o colaborador:\n{e}")
 
     def editar_colaborador(self):
+        """Edits selected collaborator's details in the database."""
         matricula = self.entry_matricula.get().strip()
         nome = self.entry_nome.get().strip()
         funcao = self.entry_funcao.get().strip()
         escala = self.entry_escala.get().strip()
         horariocontratual = self.entry_horariocontratual.get().strip()
-        encoding = self.entry_encoding.get().strip()
 
         if not matricula:
-            messagebox.showwarning("Matrícula Obrigatória", "A **Matrícula** é necessária para editar um colaborador.")
+            messagebox.showwarning("Matrícula Obrigatória", "A **Matrícula** é necessária para editar um colaborador. Por favor, selecione um colaborador na lista ou insira a matrícula.")
+            return
+
+        # Ensure we are in the Colaborador view before attempting to edit
+        if "Data Registro" in self.tree["columns"]:
+            messagebox.showwarning("Operação Não Permitida", "Edição não disponível na visualização de Backup de Ponto. Volte para a lista de Colaboradores.")
             return
 
         try:
@@ -328,9 +418,6 @@ class RHApp(tk.Tk):
             if horariocontratual:
                 update_fields.append("horariocontratual = %s")
                 params.append(horariocontratual)
-            if encoding:
-                update_fields.append("encoding = %s")
-                params.append(encoding)
 
             if not update_fields:
                 messagebox.showwarning("Nenhuma Alteração", "Nenhum campo para atualizar foi preenchido.")
@@ -342,7 +429,12 @@ class RHApp(tk.Tk):
             
             cursor.execute(sql, tuple(params))
             self.conn.commit()
-            messagebox.showinfo("Sucesso", "Colaborador atualizado com sucesso!")
+            
+            if cursor.rowcount == 0:
+                messagebox.showwarning("Aviso", f"Nenhum colaborador encontrado com a matrícula {matricula} para editar.")
+            else:
+                messagebox.showinfo("Sucesso", "Colaborador atualizado com sucesso!")
+            
             self.carregar_colaboradores()
             self.limpar_campos()
             cursor.close()
@@ -350,14 +442,21 @@ class RHApp(tk.Tk):
             messagebox.showerror("Erro", f"Ocorreu um erro ao editar o colaborador:\n{e}")
 
     def preencher_campos(self, event):
+        """Fills input fields when a Treeview item is selected."""
         selected_item = self.tree.selection()
         if not selected_item:
+            self.limpar_campos() # Clear fields if nothing is selected or selection is cleared
             return
         
         # Get selected values, handle potential IndexError if columns change
         try:
             values = self.tree.item(selected_item[0])["values"]
-            if len(values) >= 6: # Check if it's the Colaborador view
+            
+            # Check if it's the Colaborador view (based on the number of expected fields)
+            # This is a simple heuristic; a more robust way is to check self.tree["columns"]
+            current_columns_tuple = self.tree["columns"]
+            
+            if "matricula" in current_columns_tuple and len(values) >= 5: # Colaborador view
                 self.entry_matricula.delete(0, tk.END)
                 self.entry_matricula.insert(0, values[0])
                 self.entry_nome.delete(0, tk.END)
@@ -368,14 +467,13 @@ class RHApp(tk.Tk):
                 self.entry_escala.insert(0, values[3] if values[3] else "")
                 self.entry_horariocontratual.delete(0, tk.END)
                 self.entry_horariocontratual.insert(0, values[4] if values[4] else "")
-                self.entry_encoding.delete(0, tk.END)
-                self.entry_encoding.insert(0, values[5] if values[5] else "")
-            else: # Likely BackupPontoCompleto view, clear fields
+            else: # Likely BackupPontoCompleto view or other, clear fields
                 self.limpar_campos()
         except IndexError:
-            self.limpar_campos() # Clear fields if selection is from a different table
+            self.limpar_campos() # Clear fields if selection causes an index error (e.g., mismatched columns)
 
     def limpar_campos(self):
+        """Clears all input fields."""
         for entry in self.entry_widgets:
             entry.delete(0, tk.END)
 
