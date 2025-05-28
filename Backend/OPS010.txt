@@ -39,7 +39,7 @@ const char* ssid = "SEU_SSID"; // Nome da rede Wi-Fi (SSID) - SUBSTITUA COM O SE
 const char* password = "SUA_SENHA"; // Senha da rede Wi-Fi - SUBSTITUA COM A SUA
 
 // Ajuste a URL para apontar diretamente para o seu script select.php
-const char* serverName = "https://SEU_REPLIT_OU_DOMINIO.com/caminho/para/select.php";
+const char* serverName = "API AQUI;
 // Exemplo para o Replit (assumindo que select.php está na raiz do projeto):
 // const char* serverName = "https://7c95f24b-c24a-4ab8-b3a9-fe93d0470817-00-94sf2pjnt9rd.riker.replit.dev/select.php";
 
