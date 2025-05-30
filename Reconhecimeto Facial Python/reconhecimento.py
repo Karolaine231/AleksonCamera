@@ -6,16 +6,53 @@ import requests  # Para fazer requisições HTTP para a API backend
 from datetime import datetime  # Para obter data e hora atuais
 import base64  # Para codificar os encodings faciais em base64 antes de enviar
 
+def empresa_ativa(matricula):
+    """
+    Verifica se a empresa vinculada à matrícula do colaborador está com status ativo.
+    """
+    try:
+        conn = mysql.connector.connect(
+            host=MYSQL_HOST,
+            port=MYSQL_PORT,
+            user=MYSQL_USER,
+            password=MYSQL_PASSWORD,
+            database=MYSQL_DATABASE,
+            connection_timeout=5
+        )
+        cursor = conn.cursor()
+
+        query = """
+        SELECT e.status_contrato
+        FROM Colaborador c
+        INNER JOIN BDEmpresaInterno e ON c.empresa = e.empresa
+        WHERE c.matricula = %s
+        """
+        cursor.execute(query, (matricula,))
+        resultado = cursor.fetchone()
+
+        cursor.close()
+        conn.close()
+
+        if resultado and resultado[0].lower() == 'ativo':
+            return True
+        else:
+            return False
+
+    except mysql.connector.Error as err:
+        print(f"ERRO ao verificar status da empresa para matrícula {matricula}: {err}")
+        return False
+
+
 # !!! IMPORTANTE: Ajuste esta URL para apontar para o SEU ARQUIVO PHP específico !!!
 # Exemplo: "https://<seu_replit_id>.replit.dev/registrar_ponto_api.php"
 API_URL = "https://a0b480e3-0685-44b9-83e7-dc8c6c8e5e3e-00-tpx8y9ifm3f0.kirk.replit.dev/"
 
 # Suas credenciais de conexão ao banco de dados MySQL para carregar os rostos conhecidos
-MYSQL_HOST = ""
-MYSQL_PORT = 
-MYSQL_USER = ""
-MYSQL_PASSWORD = ""
-MYSQL_DATABASE = ""
+MYSQL_HOST = "www.thyagoquintas.com.br"
+MYSQL_PORT = 3306
+MYSQL_USER = "engenharia_25"
+MYSQL_PASSWORD = "caranguejoraposa"
+MYSQL_DATABASE = "engenharia_25"
 
 # Preparar listas para armazenar os dados carregados
 nomes_conhecidos = []
@@ -83,6 +120,7 @@ while True:
     frame_pequeno = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
     rgb_pequeno = cv2.cvtColor(frame_pequeno, cv2.COLOR_BGR2RGB)
 
+
     face_locations = face_recognition.face_locations(rgb_pequeno)
     face_encodings_detectados = face_recognition.face_encodings(rgb_pequeno, face_locations)
 
@@ -105,12 +143,22 @@ while True:
                 dataRegistro = agora.strftime('%Y-%m-%d')
                 horarioentrada = agora.strftime('%H:%M:%S')
 
-                payload = {
+                if empresa_ativa(matricula_identificada):
+                    payload = {
                     "encoding": encoding_serializado_b64,
                     "dataRegistro": dataRegistro,
                     "horarioentrada": horarioentrada,
-                    "matricula": matricula_identificada # Enviando matrícula, o PHP pode ou não usar
-                }
+                    "matricula": matricula_identificada
+                    }
+
+                    print(f"DEBUG PYTHON: Payload a ser enviado: {payload}")
+                    # ... segue envio para API normalmente (como já está no seu código)
+                else:
+                    print(f"❌ A empresa da matrícula {matricula_identificada} está com serviço inativo. Registro bloqueado.")
+                    nome_identificado = "Empresa Inativa"
+                    matricula_identificada = ""
+                    continue  # pula o envio dessa pessoa
+
                 
                 print(f"DEBUG PYTHON: Payload a ser enviado: {payload}")
 
