@@ -7,11 +7,11 @@ import os
 import mysql.connector
 
 # Suas credenciais de conexão ao banco de dados
-host = "www.thyagoquintas.com.br"
-port = 3306
-user = "engenharia_25"
-password = "caranguejoraposa"
-database = "engenharia_25"
+host = ""
+port = 
+user = ""
+password = ""
+database = ""
 
 # ---
 ## Função Captura e Atualiza Encoding
