@@ -3,11 +3,11 @@ from tkinter import ttk, messagebox
 import mysql.connector
 
 # Configurações do banco de dados
-DB_HOST = "www.thyagoquintas.com.br"
-DB_PORT = 3306
-DB_USER = "engenharia_25"
-DB_PASSWORD = "caranguejoraposa"
-DB_NAME = "engenharia_25"
+DB_HOST = ""
+DB_PORT = 
+DB_USER = ""
+DB_PASSWORD = ""
+DB_NAME = ""
 
 class RHApp(tk.Tk):
     def __init__(self):
