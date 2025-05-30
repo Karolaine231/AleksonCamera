@@ -11,11 +11,11 @@ import base64  # Para codificar os encodings faciais em base64 antes de enviar
 API_URL = "https://a0b480e3-0685-44b9-83e7-dc8c6c8e5e3e-00-tpx8y9ifm3f0.kirk.replit.dev/"
 
 # Suas credenciais de conexão ao banco de dados MySQL para carregar os rostos conhecidos
-MYSQL_HOST = "www.thyagoquintas.com.br"
-MYSQL_PORT = 3306
-MYSQL_USER = "engenharia_25"
-MYSQL_PASSWORD = "caranguejoraposa"
-MYSQL_DATABASE = "engenharia_25"
+MYSQL_HOST = ""
+MYSQL_PORT = 
+MYSQL_USER = ""
+MYSQL_PASSWORD = ""
+MYSQL_DATABASE = ""
 
 # Preparar listas para armazenar os dados carregados
 nomes_conhecidos = []
