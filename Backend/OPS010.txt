@@ -2,6 +2,8 @@
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 #include "DHT.h"
+// Remover a linha #include "driver/ledc.h" ao usar analogWrite
+// #include "driver/ledc.h" // Esta linha NÃO é necessária com analogWrite()
 
 // Definição dos pinos do controlador para as saídas digitais (Y)
 #define pin_Y1 13
@@ -11,7 +13,7 @@
 #define pin_Y5 25
 #define pin_Y6 33
 #define pin_Y7 32
-#define pin_Y8 4 // ATENÇÃO: Conflito com DHTPIN se ambos forem 4. Mude um deles.
+#define pin_Y8 4
 
 // Definição dos pinos do controlador para as entradas digitais (X)
 #define pin_X1 15
@@ -25,23 +27,18 @@
 
 // Definição dos pinos para entrada analógica (AI) e saída analógica (AO)
 #define pin_AI1 35
-#define pin_AO1 23
+#define pin_AO1 23 // Pino para saída analógica (PWM)
 
 #define ENTX_pin 2
 
-// ATENÇÃO: Se pin_Y8 e DHTPIN são ambos 4, isso é um conflito!
-// Mude um dos pinos. Exemplo: DHTPIN para um pino não usado (como 16).
-#define DHTPIN 16 // Exemplo de mudança, verifique a disponibilidade no seu ESP32.
+// --- Configuração do Sensor DHT ---
+#define DHTPIN 16
 #define DHTTYPE DHT22
 DHT dht(DHTPIN, DHTTYPE);
 
-const char* ssid = "SEU_SSID"; // Nome da rede Wi-Fi (SSID) - SUBSTITUA COM O SEU
-const char* password = "SUA_SENHA"; // Senha da rede Wi-Fi - SUBSTITUA COM A SUA
-
-// Ajuste a URL para apontar diretamente para o seu script select.php
-const char* serverName = "API AQUI;
-// Exemplo para o Replit (assumindo que select.php está na raiz do projeto):
-// const char* serverName = "https://7c95f24b-c24a-4ab8-b3a9-fe93d0470817-00-94sf2pjnt9rd.riker.replit.dev/select.php";
+const char* ssid = "Ju";
+const char* password = "JUJUJUJU";
+const char* serverName = "https://bf3b9a13-e838-43b5-adff-348d35100b70-00-39p6krtekfic1.picard.replit.dev/";
 
 unsigned long lastTime = 0;
 unsigned long timerDelay = 5000; // Intervalo para buscar dados do servidor (5 segundos)
@@ -61,9 +58,8 @@ void setup() {
   digitalWrite(pin_Y1, LOW); digitalWrite(pin_Y2, LOW); digitalWrite(pin_Y3, LOW); digitalWrite(pin_Y4, LOW);
   digitalWrite(pin_Y5, LOW); digitalWrite(pin_Y6, LOW); digitalWrite(pin_Y7, LOW); digitalWrite(pin_Y8, LOW);
 
-  ledcSetup(0, 1000, 12);
-  ledcAttachPin(pin_AO1, 0);
-  ledcWrite(0, 0);
+  // **** MUDANÇA AQUI: Usando analogWrite() em vez de ledcSetup/ledcAttachPin/ledcWrite ***
+  analogWrite(pin_AO1, 0); // Define o valor inicial do PWM para 0 (desligado)
 
   WiFi.begin(ssid, password);
   Serial.print("Conectando-se ao Wi-Fi...");
@@ -88,7 +84,16 @@ void loop() {
       http.begin(serverName);
       http.setTimeout(10000);
 
+      // --- INÍCIO DA MEDIÇÃO DE LATÊNCIA ---
+      unsigned long startTime = millis();
       int httpResponseCode = http.GET();
+      unsigned long endTime = millis();
+      unsigned long latency = endTime - startTime;
+
+      Serial.print("Latência da resposta da API: ");
+      Serial.print(latency);
+      Serial.println(" ms");
+      // --- FIM DA MEDIÇÃO DE LATÊNCIA ---
 
       if (httpResponseCode > 0) {
         Serial.print("Resposta HTTP: ");
@@ -110,11 +115,19 @@ void loop() {
 
             if (!dataArray.isNull() && dataArray.size() > 0) {
               JsonObject latestRecord = dataArray[dataArray.size() - 1].as<JsonObject>();
-              // *** MODIFICAÇÃO AQUI: Verifica pela chave "idPonto" ***
               if (!latestRecord.isNull() && latestRecord.containsKey("idPonto")) {
                 dadosValidosEncontrados = true;
-                String idPontoValue = latestRecord["idPonto"].as<String>(); // Obtém o valor de "idPonto"
+                String idPontoValue = latestRecord["idPonto"].as<String>();
                 Serial.println("Dados válidos encontrados. Último 'idPonto': " + idPontoValue);
+
+                if (latestRecord.containsKey("valorAO1")) {
+                   int ao1_value_from_json = latestRecord["valorAO1"].as<int>();
+                   // Converte o valor de 0-4095 (12 bits) para 0-255 (8 bits)
+                   int ao1_value_for_analogWrite = map(ao1_value_from_json, 0, 4095, 0, 255);
+                   analogWrite(pin_AO1, ao1_value_for_analogWrite);
+                   Serial.print("AO1 setado para: ");
+                   Serial.println(ao1_value_for_analogWrite);
+                }
               } else {
                 Serial.println("Array 'data' com registros, mas último registro é inválido ou não contém 'idPonto'.");
               }
@@ -132,7 +145,8 @@ void loop() {
       }
       http.end();
     } else {
-      Serial.println("Wi-Fi desconectado.");
+      Serial.println("Wi-Fi desconectado. Tentando reconectar...");
+      WiFi.begin(ssid, password);
     }
 
     if (dadosValidosEncontrados) {
@@ -143,4 +157,6 @@ void loop() {
       Serial.println("Y1 DESLIGADO (sem dados válidos com 'idPonto', erro ou Wi-Fi desconectado).");
     }
   }
+
+  delay(100);
 }
