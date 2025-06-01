@@ -36,9 +36,9 @@
 #define DHTTYPE DHT22
 DHT dht(DHTPIN, DHTTYPE);
 
-const char* ssid = "*****";
-const char* password = "********";
-const char* serverName = "************";
+const char* ssid = "Ju";
+const char* password = "JUJUJUJU";
+const char* serverName = "***********************************************";
 
 unsigned long lastTime = 0;
 unsigned long timerDelay = 5000; // Intervalo para buscar dados do servidor (5 segundos)
@@ -58,7 +58,7 @@ void setup() {
   digitalWrite(pin_Y1, LOW); digitalWrite(pin_Y2, LOW); digitalWrite(pin_Y3, LOW); digitalWrite(pin_Y4, LOW);
   digitalWrite(pin_Y5, LOW); digitalWrite(pin_Y6, LOW); digitalWrite(pin_Y7, LOW); digitalWrite(pin_Y8, LOW);
 
-  // **** MUDANÇA AQUI: Usando analogWrite() em vez de ledcSetup/ledcAttachPin/ledcWrite ***
+  // ** MUDANÇA AQUI: Usando analogWrite() em vez de ledcSetup/ledcAttachPin/ledcWrite *
   analogWrite(pin_AO1, 0); // Define o valor inicial do PWM para 0 (desligado)
 
   WiFi.begin(ssid, password);
