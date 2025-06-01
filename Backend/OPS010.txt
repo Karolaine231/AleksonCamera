@@ -36,9 +36,9 @@
 #define DHTTYPE DHT22
 DHT dht(DHTPIN, DHTTYPE);
 
-const char* ssid = "Ju";
-const char* password = "JUJUJUJU";
-const char* serverName = "https://bf3b9a13-e838-43b5-adff-348d35100b70-00-39p6krtekfic1.picard.replit.dev/";
+const char* ssid = "*****";
+const char* password = "********";
+const char* serverName = "************";
 
 unsigned long lastTime = 0;
 unsigned long timerDelay = 5000; // Intervalo para buscar dados do servidor (5 segundos)
