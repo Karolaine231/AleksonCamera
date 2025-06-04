@@ -72,7 +72,7 @@ O **Sistema de Reconhecimento e Controle de Ponto Inteligente** é uma solução
 - Configure o trigger para backup automático.
 
 ### 2. Configuração do Backend (PHP)
-- Hospede `index.php` e `select.php`.
+- Hospede `insert.php` e `select.php`.
 - Ajuste as credenciais MySQL.
 
 #### Exemplo de `index.php` (POST):
