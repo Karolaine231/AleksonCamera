@@ -128,7 +128,7 @@ O **Sistema de Reconhecimento e Controle de Ponto Inteligente** é uma solução
 ## 🤝 Contribuições
 
 - **Karolaine S.** — Responsável pelo design e implementação da interface gráfica (Tkinter) e pela estruturação geral do projeto.
-- **Julya Dias** — Envolveu-se diretamente na implementação do reconhecimento facial, na integração do sistema com o banco de dados e no desenvolvimento da lógica para o frontend ESP32.
+- **Julya Dias** — Envolveu-se diretamente na implementação do reconhecimento facial, na integração do sistema com o banco de dados e no desenvolvimento da lógica para a arquitetura de comunicação Back-end.
 - **Alice B.** — Contribuiu com a concepção da estrutura física do projeto e a montagem dos circuitos eletrônicos.
 - **Professor André** — Prestou orientação técnica e suporte acadêmico contínuo.
 
