@@ -26,7 +26,7 @@ O **Sistema de Reconhecimento e Controle de Ponto Inteligente** é uma solução
 
 ## 🖥️ Tecnologias Utilizadas
 
-### Módulo Python (AleksonCamera)
+### Módulo Python (AleksonCamera) - Front-end
 - Python 3.10+
 - `opencv-python`
 - `face_recognition`
@@ -39,7 +39,7 @@ O **Sistema de Reconhecimento e Controle de Ponto Inteligente** é uma solução
 - PHP 7+
 - MySQL
 
-### Frontend (ESP32 / Arduino)
+### Comunicação Hardware (ESP32 / Arduino)
 - ESP32 com Arduino IDE
 - Bibliotecas: `WiFi.h`, `HTTPClient.h`, `ArduinoJson.h (v6+)`, `DHT.h`
 
