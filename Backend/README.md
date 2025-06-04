@@ -1,6 +1,6 @@
 # Sistema de Controle de Ponto Inteligente
 
-Este projeto implementa um sistema de controle de ponto utilizando um banco de dados MySQL para o backend, scripts PHP como API e um dispositivo ESP32 (Arduino) como frontend. O sistema registra o ponto de colaboradores com base em um "encoding" (simulando reconhecimento facial ou biométrico), além de gerenciar empresas, departamentos e dados de ponto.
+Este projeto implementa um sistema de controle de ponto utilizando um banco de dados MySQL para o backend, scripts PHP como API e um dispositivo ESP32 (Arduino) como comunicador. O sistema registra o ponto de colaboradores com base em um "encoding" (simulando reconhecimento facial ou biométrico), além de gerenciar empresas, departamentos e dados de ponto.
 
 ---
 
